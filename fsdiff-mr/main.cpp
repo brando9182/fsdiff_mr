@@ -7,9 +7,15 @@
 //
 
 #include <iostream>
+using namespace std;
 
 int main(int argc, const char * argv[]) {
-    // insert code here...
+    string command = "ssh root@rdev-mm-51-im27 'ls'";
+    int ret = system(command.c_str());
+    if(ret != 0){
+        cout<<"uh-oh"<<endl;
+        return 0;
+    }
     std::cout << "Hello, World!\n";
     return 0;
 }
