@@ -11,6 +11,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <vector>
+#include <queue>
 using namespace std;
 
 
@@ -19,7 +20,7 @@ bool vv = false;//more verbose
 
 //  Executes the command with an option to print the command and its responce
 //Unsure if popen is necessary (as opposed to i.e execvp)
-vector<string> execute(string command, bool returnList){
+queue<string> execute(string command, bool returnList){
     if(vv) cout<<"  " << command<<endl;
     FILE *pipe = popen(command.c_str(), "r");
     if(pipe == NULL){
@@ -28,10 +29,10 @@ vector<string> execute(string command, bool returnList){
     }
     
     char readbuf[80];
-    vector<string> list;
+    queue<string> list;
     if(returnList){
         while(fgets(readbuf, 80, pipe)){
-            list.push_back(readbuf);
+            list.push(readbuf);
         }
     } else if(vv){
         while(fgets(readbuf, 80, pipe)){
@@ -42,18 +43,34 @@ vector<string> execute(string command, bool returnList){
     return list;
 }
 
+struct worker{
+    string machine;
+    bool busy;
+};
+
 //sends the worker machines files to fsdiff
 //stores their transcript when they are done
 //and sends another file if we are not done
-void manageWorkers(vector<string> workers){
+void manageWorkers(vector<string> machines){
+    //get files
     string cmdListFiles = "ls /"; //Should I secify the directory?
-    vector<string> files = execute(cmdListFiles, true);
+    queue<string> files = execute(cmdListFiles, true);
+    if(v) cout<<"Found "<<files.size()<<" files"<<endl;
     
-    vector<pair<string, bool>> fileStatus;
-    for(string file: files){
-        fileStatus.push_back(make_pair(file, false));
+    //build workers
+    vector<worker> workers;
+    for(string machine : machines){
+        worker mworker;
+        mworker.machine = machine;
+        mworker.busy = false;
+        workers.push_back(mworker);
     }
-    if(v) cout<<"Found "<<fileStatus.size()<<" files"<<endl;
+    if(v) cout<<"Number of workers "<<workers.size()<<endl;
+//    
+//    while(!files.empty()){
+//        string file = files.front();
+//        
+//    }
     
 }
 
