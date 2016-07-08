@@ -49,13 +49,27 @@ struct worker{
     bool busy;
 };
 
+//Finds the trancript file
+//copies it to master and restores the _original file
 void fetchAndRestore(string machine){
+    cout<<"Entering fetch and retore"<<endl;
+    string cmdListFiles = "ls /";
+    queue<string> files = execute(cmdListFiles, true);
+    while(!files.empty()) {
+        string file = files.front();
+        cout<<file<<", "<<file.length()<<" characters"<<endl;
+        files.pop();
+    }
+    //find the .T file
+    //copy it
+    //restore old file
+    
     string cmdSsh = "ssh " + machine + " ";
     //string cmdRestorefile = "'mv /" + file + "_original /" + file + "'";
 
     //copy transcript elsewhere
     //if(vv)cout<<"Restoring file:"<<file<<"on "<<mworker.machine<<endl;
-    execute(cmdSsh + cmdRestorefile, false);
+    //execute(cmdSsh + cmdRestorefile, false);
 }
 //checks if any worker machine is running fsdiff
 //hangs until it finds one
@@ -73,6 +87,7 @@ worker findAvailableWorker(vector<worker> workers){
             
             queue<string> result = execute(cmdSsh + cmdFsdiffCount, true);
             if(stoi(result.front()) <= 2){
+                cout<<"about to enter"<<endl;
                 fetchAndRestore(mworker.machine);
                 mworker.busy = false;
                 return mworker;
@@ -124,7 +139,7 @@ void manageWorkers(vector<string> machines){
 
        execute(cmdSsh + cmdRenameFile, false);
        execute(cmdCopyFile, false);
-       execute(cmdSshf + cmdFsdiff, false);
+       //execute(cmdSshf + cmdFsdiff, false);
        files.pop();
        mworker.busy = true;
        
