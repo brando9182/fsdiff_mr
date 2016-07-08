@@ -48,8 +48,15 @@ struct worker{
     string machine;
     bool busy;
 };
-//TODO: getting processes to run in the background is tough. Look at nohup and screen
 
+void fetchAndRestore(string machine){
+    string cmdSsh = "ssh " + machine + " ";
+    //string cmdRestorefile = "'mv /" + file + "_original /" + file + "'";
+
+    //copy transcript elsewhere
+    //if(vv)cout<<"Restoring file:"<<file<<"on "<<mworker.machine<<endl;
+    execute(cmdSsh + cmdRestorefile, false);
+}
 //checks if any worker machine is running fsdiff
 //hangs until it finds one
 //Multithreading?
@@ -66,6 +73,7 @@ worker findAvailableWorker(vector<worker> workers){
             
             queue<string> result = execute(cmdSsh + cmdFsdiffCount, true);
             if(stoi(result.front()) <= 2){
+                fetchAndRestore(mworker.machine);
                 mworker.busy = false;
                 return mworker;
             }
@@ -78,8 +86,8 @@ worker findAvailableWorker(vector<worker> workers){
 //ssh -f root@rdev-cl-41-imir "cd / ; ulimit -n 1024; /usr/local/bin/fsdiff -CIcsha1 ."
 
 //sends the worker machines files to fsdiff
-//stores their transcript when they are done
-//and sends another file if we are not done
+//stores their transcript (as filename.T) when they are done
+//and sends another file if there are any left
 void manageWorkers(vector<string> machines){
     //get files
     string cmdListFiles = "ls /"; //Should I secify the directory?
@@ -107,16 +115,20 @@ void manageWorkers(vector<string> machines){
        
        //TODO: file may not exist in other machine (also may have _original already appended to it)
        string cmdSsh = "ssh " + mworker.machine + " ";
+       string cmdSshf ="ssh -f " + mworker.machine + " ";
        string cmdRenameFile = "'mv /" + file + " /" + file + "_original'";
        //recursive copy maintins original creation dates
        string cmdCopyFile = "scp -rp /" + file + " root@"+ mworker.machine + ":/";
-       string cmdRestorefile = "'mv /" + file + "_original /" + file + "'";
-       
+       //double check trailing & with a bigger file
+       string cmdFsdiff = "'cd / ; ulimit -n 1024; /usr/local/bin/fsdiff -CIcsha1 -o "+ file + ".T ./" + file + "' &";
+
        execute(cmdSsh + cmdRenameFile, false);
        execute(cmdCopyFile, false);
-       //pop mark busy fsdiff also , copy transcript
-       if(vv)cout<<"Restoring file:"<<file<<"on "<<mworker.machine<<endl;
-       execute(cmdSsh + cmdRestorefile, false);
+       execute(cmdSshf + cmdFsdiff, false);
+       files.pop();
+       mworker.busy = true;
+       
+ 
        return;//testing, only do once
    }
     
