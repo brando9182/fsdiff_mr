@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <vector>
 #include <queue>
+#include <unistd.h> //for sleep
 using namespace std;
 
 
@@ -47,6 +48,34 @@ struct worker{
     string machine;
     bool busy;
 };
+//TODO: getting processes to run in the background is tough. Look at nohup and screen
+
+//checks if any worker machine is running fsdiff
+//hangs until it finds one
+//Multithreading?
+//pro: efficiency++
+//con: complexity++
+worker findAvailableWorker(vector<worker> workers){
+    while(true){
+        for(worker mworker : workers){
+            if(!mworker.busy) return mworker;
+            //the following may be unreliable. Better to parse the strings and analyze them
+            //possibly pass in an echo or comment to the command to act as sentinel
+            string cmdSsh = "ssh root@" + mworker.machine + " ";
+            string cmdFsdiffCount = "'ps aux | grep fsdiff | wc -l'";
+            
+            queue<string> result = execute(cmdSsh + cmdFsdiffCount, true);
+            if(stoi(result.front()) <= 2){
+                mworker.busy = false;
+                return mworker;
+            }
+        }
+        if(v) cout<<"No worker is availbale, sleeping for 10 seconds"<<endl;
+        sleep(10);
+    }
+}
+
+//ssh -f root@rdev-cl-41-imir "cd / ; ulimit -n 1024; /usr/local/bin/fsdiff -CIcsha1 ."
 
 //sends the worker machines files to fsdiff
 //stores their transcript when they are done
@@ -66,11 +95,30 @@ void manageWorkers(vector<string> machines){
         workers.push_back(mworker);
     }
     if(v) cout<<"Number of workers "<<workers.size()<<endl;
-//    
-//    while(!files.empty()){
-//        string file = files.front();
-//        
-//    }
+
+
+//  TODO: send each file to a worker and send the fsdiff command
+   while(!files.empty()){
+       //chop off the new line character
+       string file(files.front().begin(), files.front().end()-1);
+       
+       worker mworker = findAvailableWorker(workers);
+       if(v) cout<<mworker.machine<<" availale, sending it file: "<<file<<endl;
+       
+       //TODO: file may not exist in other machine (also may have _original already appended to it)
+       string cmdSsh = "ssh " + mworker.machine + " ";
+       string cmdRenameFile = "'mv /" + file + " /" + file + "_original'";
+       //recursive copy maintins original creation dates
+       string cmdCopyFile = "scp -rp /" + file + " root@"+ mworker.machine + ":/";
+       string cmdRestorefile = "'mv /" + file + "_original /" + file + "'";
+       
+       execute(cmdSsh + cmdRenameFile, false);
+       execute(cmdCopyFile, false);
+       //pop mark busy fsdiff also , copy transcript
+       if(vv)cout<<"Restoring file:"<<file<<"on "<<mworker.machine<<endl;
+       execute(cmdSsh + cmdRestorefile, false);
+       return;//testing, only do once
+   }
     
 }
 
