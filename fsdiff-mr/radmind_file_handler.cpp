@@ -6,7 +6,7 @@
 //  Copyright © 2016 Learning Evironments. All rights reserved.
 //
 // In order to produce transcripts on the worker identical to what they would've been on the master,
-// Handles the radmind overhead to make fsdiff think the workers are the original machine
+// handles the radmind overhead to make fsdiff think the workers are the original machine
 
 #include <iostream>
 #include <fstream>
@@ -22,8 +22,36 @@ using namespace std;
 //TODO: ls -R get all transcripts and build new client with our tmp appended
 string tmp_file = "/tmp/dist_fsdiff";
 
+vector<string> getTrancsriptPaths(){
+    if(v) cout<<"Listing files under /var/radmind/client/"<<endl;
+    vector<string> paths;
+    string cmdListDirectories = "ls -R /var/radmind/client/";
+    queue<string> lsBuffer = execute(cmdListDirectories, RETURN_RESPONCE);
+    while(!lsBuffer.empty()){
+        string line = lsBuffer.front();
+        if(line[0] == '/'){
+            lsBuffer.pop();
+            line = lsBuffer.front();
+            while(line.length() > 2 && line.at(line.length()-2) == 'T'){
+                cout<<line;
+                if(line == "security-update-2016-002.T\n"){
+                    cout<<"End?"<<endl;
+                }
+                //TODO: ends on this but it shouldnt
+                lsBuffer.pop();
+                line = lsBuffer.front();
+            }
+        
+        }
+        lsBuffer.pop();
+    }
+    
+    return paths;
+}
+
 /*  Appends a tmp nameholder to all transcripts */
 void processTrancripts(){
+    vector<string> paths = getTrancsriptPaths();
     execute("mkdir "+tmp_file, IGNORE_RESPONCE);
     string line;
     ifstream transcript_in("/var/radmind/client/applications/content-creation/joe-3_7.T");
