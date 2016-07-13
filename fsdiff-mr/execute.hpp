@@ -13,7 +13,7 @@
 #include <queue>
 using namespace std;
 
-queue<string> execute(string command, bool returnList);
+vector<string> execute(string command, bool returnList);
 
 const bool IGNORE_RESPONCE = false;
 const bool RETURN_RESPONCE = true;

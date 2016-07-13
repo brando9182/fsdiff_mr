@@ -17,7 +17,7 @@ using namespace std;
 
 //  Executes the command with an option to print the command and its responce
 //Unsure if popen is necessary (as opposed to i.e execvp)
-queue<string> execute(string command, bool returnList){
+vector<string> execute(string command, bool returnList){
     if(vv) cout<<"  " << command<<endl;
     FILE *pipe = popen(command.c_str(), "r");
     if(pipe == NULL){
@@ -26,10 +26,10 @@ queue<string> execute(string command, bool returnList){
     }
     
     char readbuf[80];
-    queue<string> list;
+    vector<string> list;
     if(returnList){
         while(fgets(readbuf, 80, pipe)){
-            list.push(readbuf);
+            list.push_back(readbuf);
         }
     } else if(vv){
         while(fgets(readbuf, 80, pipe)){

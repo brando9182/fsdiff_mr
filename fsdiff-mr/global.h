@@ -12,6 +12,8 @@
 
 using namespace std;
 
+typedef string command;
+
 struct worker{
     string machine;
     bool busy;

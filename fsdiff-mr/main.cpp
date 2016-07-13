@@ -35,15 +35,15 @@ void fetchAndRestore(worker mworker){
     }
     string transcript = mworker.file + ".T";
     
-    string cmdSsh = "ssh root@" + mworker.machine + " ";
-    string cmdCopyTranscript = "scp "+mworker.machine+":/"+transcript+" /transcripts";
-    string cmdRemoveTranscript = "'rm /" + transcript + "'";
-    execute(cmdCopyTranscript, IGNORE_RESPONCE);
-    execute(cmdSsh + cmdRemoveTranscript, IGNORE_RESPONCE);
+    command ssh = "ssh root@" + mworker.machine + " ";
+    command copyTranscript = "scp "+mworker.machine+":/"+transcript+" /transcripts";
+    command removeTranscript = "'rm /" + transcript + "'";
+    execute(copyTranscript, IGNORE_RESPONCE);
+    execute(ssh + removeTranscript, IGNORE_RESPONCE);
     
     if(vv) cout<<"Restoring file: "<<mworker.file<<endl;
-    string cmdRestorefile = "'mv /" + mworker.file + "_original /" + mworker.file + "'";
-    execute(cmdSsh + cmdRestorefile, IGNORE_RESPONCE);
+    command restorefile = "'mv /" + mworker.file + "_original /" + mworker.file + "'";
+    execute(ssh + restorefile, IGNORE_RESPONCE);
 }
 
 
@@ -59,10 +59,10 @@ worker* findAvailableWorker(){
             }
             
             /*query runnig programs to find fsdiff, note 2 false positives from this comand*/
-            string cmdSsh = "ssh root@" + mworker.machine + " ";
-            string cmdFsdiffCount = "'ps aux | grep fsdiff | wc -l'";
+            command ssh = "ssh root@" + mworker.machine + " ";
+            command fsdiffCount = "'ps aux | grep fsdiff | wc -l'";
             
-            queue<string> result = execute(cmdSsh + cmdFsdiffCount, true);
+            vector<string> result = execute(ssh + fsdiffCount, true);
             if(stoi(result.front()) <= 2){
                 if(vv) cout<<mworker.machine<<" done, fetching transcript and restoring file"<<endl;
                 fetchAndRestore(mworker);
@@ -82,32 +82,30 @@ worker* findAvailableWorker(){
 //and sends another file if there are any left
 void manageWorkers(){
     if(v) cout<<"Getting files at the root directory"<<endl;
-    string cmdListFiles = "ls /"; //Should I secify the / directory?
-    queue<string> files = execute(cmdListFiles, true);
+    command listFiles = "ls /"; //Should I secify the / directory?
+    vector<string> files = execute(listFiles, true);
     if(v) cout<<"Found "<<files.size()<<" files"<<endl;
     
 
-   while(!files.empty()){
-       /*chop off the new line character*/
-       string file(files.front().begin(), files.front().end()-1);
+    for(string file : files){
+        /*chop off the new line character*/
+        file.pop_back();
+        worker *mworker = findAvailableWorker();
+        if(v) cout<<mworker->machine<<" available, sending it file: "<<file<<endl;
        
-       worker *mworker = findAvailableWorker();
-       if(v) cout<<mworker->machine<<" available, sending it file: "<<file<<endl;
-       
-       //TODO: file may not exist in other machine (also may have _original already appended to it)
-       string cmdSsh = "ssh " + mworker->machine + " ";
-       string cmdSshf ="ssh -f " + mworker->machine + " ";
-       string cmdRenameFile = "'mv /" + file + " /" + file + "_original'";
-       string cmdCopyFile = "scp -rp /" + file + " root@"+ mworker->machine + ":/";
-       //double check trailing & with a bigger file
-       string cmdFsdiff = "'cd / ; ulimit -n 1024; /usr/local/bin/fsdiff -CIcsha1 -o "+ file + ".T ./" + file + "' &";
+        //TODO: file may not exist in other machine (also may have _original already appended to it)
+        command ssh = "ssh " + mworker->machine + " ";
+        command sshf ="ssh -f " + mworker->machine + " ";
+        command renameFile = "'mv /" + file + " /" + file + "_original'";
+        command copyFile = "scp -rp /" + file + " root@"+ mworker->machine + ":/";
+        //double check trailing & with a bigger file
+        command fsdiff = "'cd / ; ulimit -n 1024; /usr/local/bin/fsdiff -CIcsha1 -o "+ file + ".T ./" + file + "' &";
 
-       execute(cmdSsh + cmdRenameFile, false);
-       execute(cmdCopyFile, false);
-       execute(cmdSshf + cmdFsdiff, false);
-       files.pop();
-       mworker->busy = true;
-       mworker->file = file;
+        execute(ssh + renameFile, false);
+        execute(copyFile, false);
+        execute(sshf + fsdiff, false);
+        mworker->busy = true;
+        mworker->file = file;
    }
     
 }
