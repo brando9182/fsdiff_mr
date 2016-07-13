@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		EB3B65BC1D2DB9D70016D335 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EB3B65BB1D2DB9D70016D335 /* main.cpp */; };
+		EB7440011D35C0F4009CA3B7 /* execute.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EB743FFF1D35C0F4009CA3B7 /* execute.cpp */; };
+		EB7440051D35C45B009CA3B7 /* radmind_file_handler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EB7440031D35C45B009CA3B7 /* radmind_file_handler.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +27,11 @@
 /* Begin PBXFileReference section */
 		EB3B65B81D2DB9D70016D335 /* fsdiff-mr */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "fsdiff-mr"; sourceTree = BUILT_PRODUCTS_DIR; };
 		EB3B65BB1D2DB9D70016D335 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		EB743FFF1D35C0F4009CA3B7 /* execute.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = execute.cpp; sourceTree = "<group>"; };
+		EB7440001D35C0F4009CA3B7 /* execute.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = execute.hpp; sourceTree = "<group>"; };
+		EB7440021D35C31E009CA3B7 /* global.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = global.h; sourceTree = "<group>"; };
+		EB7440031D35C45B009CA3B7 /* radmind_file_handler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = radmind_file_handler.cpp; sourceTree = "<group>"; };
+		EB7440041D35C45B009CA3B7 /* radmind_file_handler.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = radmind_file_handler.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +65,11 @@
 			isa = PBXGroup;
 			children = (
 				EB3B65BB1D2DB9D70016D335 /* main.cpp */,
+				EB743FFF1D35C0F4009CA3B7 /* execute.cpp */,
+				EB7440001D35C0F4009CA3B7 /* execute.hpp */,
+				EB7440031D35C45B009CA3B7 /* radmind_file_handler.cpp */,
+				EB7440041D35C45B009CA3B7 /* radmind_file_handler.hpp */,
+				EB7440021D35C31E009CA3B7 /* global.h */,
 			);
 			path = "fsdiff-mr";
 			sourceTree = "<group>";
@@ -118,7 +130,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EB7440051D35C45B009CA3B7 /* radmind_file_handler.cpp in Sources */,
 				EB3B65BC1D2DB9D70016D335 /* main.cpp in Sources */,
+				EB7440011D35C0F4009CA3B7 /* execute.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -237,6 +251,7 @@
 				EB3B65C11D2DB9D70016D335 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

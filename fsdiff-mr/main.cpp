@@ -7,53 +7,23 @@
 /*
  cd /afs/ir.stanford.edu/users/s/o/solis17/Documents/work/fsdiff-mr/DerivedData/fsdiff-mr/Build/Products/Debug
 */
-//TODO: too scp applcationsL
-//Maintain a string for the fille a machine is working on
 
 #include <iostream>
-#include <fstream>
+#include <string>
 #include <stdio.h>
 #include <vector>
 #include <queue>
 #include <unistd.h> //for sleep
-using namespace std;
 
+#include "global.h"
+#include "execute.hpp"
+#include "radmind_file_handler.hpp"
+using namespace std;
 
 bool v = false; //verbose
 bool vv = false;//more verbose
-const bool IGNORE_RESPONCE = false;
-struct worker{
-    string machine;
-    bool busy;
-    string file;
-};
 vector<worker> workers;
 
-
-//  Executes the command with an option to print the command and its responce
-//Unsure if popen is necessary (as opposed to i.e execvp)
-queue<string> execute(string command, bool returnList){
-    if(vv) cout<<"  " << command<<endl;
-    FILE *pipe = popen(command.c_str(), "r");
-    if(pipe == NULL){
-        perror("popen");
-        exit(1);
-    }
-    
-    char readbuf[80];
-    queue<string> list;
-    if(returnList){
-        while(fgets(readbuf, 80, pipe)){
-            list.push(readbuf);
-        }
-    } else if(vv){
-        while(fgets(readbuf, 80, pipe)){
-            cout<<"P: "<<readbuf<<endl;
-        }
-    }
-    pclose(pipe);
-    return list;
-}
 
 /*
  *Finds the trancript file
@@ -142,66 +112,6 @@ void manageWorkers(){
     
 }
 
-string tmp_file = "/tmp/dist_fsdiff";
-/*Appends '/dist_fsdiff' to every line in the /var/radmind/.../transcripts for safe copying*/
-void processTrancripts(){
-    execute("mkdir "+tmp_file, IGNORE_RESPONCE);
-    string line;
-    ifstream transcript_in("/var/radmind/client/applications/content-creation/joe-3_7.T");
-    ofstream transcript_out("/tmp/joe-3_7.T");
-    if(transcript_in.is_open() && transcript_out.is_open()){
-        while(getline(transcript_in, line)){
-            size_t dotPosition = line.find(".");
-            line.insert(dotPosition +1 , tmp_file);
-            transcript_out << line <<endl;
-             
-        }
-        transcript_in.close();
-        transcript_out.close();
-    } else{
-        if(!transcript_out.is_open()){
-            cout<<"Because of oftream"<<endl;
-        }
-        if(!transcript_in.is_open()){
-            cout<<"becuase of ifstream"<<endl;
-        }
-    }
-    while(1);//hang here for testing
-}
-
-void fsdiff_mr(){
-    processTrancripts();
-    
-    /*replace client folder in all target machines*/
-    for(worker mworker: workers){
-        string cmdSsh = "ssh " + mworker.machine + " ";
-        string cmdRenameClient = "'mv /var/radmind/client /var/radmind/client_original'";
-        string cmdCopyClient = "scp -r /var/radmind/client root@" + mworker.machine + ":/var/radmind/client";
-        
-        if(v) cout<<"Replacing /var/radmind/client of "<< mworker.machine <<endl;
-        execute(cmdSsh + cmdRenameClient, IGNORE_RESPONCE);
-        execute(cmdCopyClient, IGNORE_RESPONCE);
-        
-    }
-    if(v)cout<<"Creating working directory /transcripts"<<endl;
-    string cmdMakeWorkspace = "mkdir /transcripts";
-    execute(cmdMakeWorkspace, IGNORE_RESPONCE);
-    
-    
-    manageWorkers();
-    
-    /*Restore client folder in target machines*/
-    for(worker mworker : workers){
-        string cmdSsh = "ssh " + mworker.machine + " ";
-        string cmdRestoreClient = "'mv /var/radmind/client_original /var/radmind/client'";
-        string cmdDeleteWorkingDirectory = "rm -rf /transcripts";
-        
-        if(v) cout<<"Restoring original client folder on "<<mworker.machine<<endl;
-        execute(cmdSsh + cmdRestoreClient, IGNORE_RESPONCE);
-        execute(cmdDeleteWorkingDirectory, IGNORE_RESPONCE);
-    }
-}
-
 
 //TODO: The authenticity of host... yes/no message
 int main(int argc, const char * argv[]) {
@@ -228,7 +138,10 @@ int main(int argc, const char * argv[]) {
     }
     if(v) cout<<"Number of workers "<<workers.size()<<endl;
     
-    fsdiff_mr();
+    setup();
+    manageWorkers();
+    cleanup();
+
 
     return 0;
 }
