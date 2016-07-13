@@ -5,6 +5,8 @@
 //  Created by Brandon Abel Solis on 7/12/16.
 //  Copyright © 2016 Learning Evironments. All rights reserved.
 //
+// In order to produce transcripts on the worker identical to what they would've been on the master,
+// Handles the radmind overhead to make fsdiff think the workers are the original machine
 
 #include <iostream>
 #include <fstream>
@@ -16,10 +18,11 @@
 #include <stdio.h>
 #include <string>
 using namespace std;
-//TODO: ls -R get all transcripts and build new client with our tmp appended
 
+//TODO: ls -R get all transcripts and build new client with our tmp appended
 string tmp_file = "/tmp/dist_fsdiff";
-/*Appends '/dist_fsdiff' to every line in the /var/radmind/.../transcripts for safe copying*/
+
+/*  Appends a tmp nameholder to all transcripts */
 void processTrancripts(){
     execute("mkdir "+tmp_file, IGNORE_RESPONCE);
     string line;
@@ -45,6 +48,10 @@ void processTrancripts(){
     while(1);//hang here for testing
 }
 
+/*  
+ *  copies client folder to worker machines
+ *  and creates transcript folder
+ */
 void setup(){
     processTrancripts();
     
@@ -64,8 +71,8 @@ void setup(){
     execute(cmdMakeWorkspace, IGNORE_RESPONCE);
 }
 
+/*  restores previous client folder on worker */
 void cleanup(){
-    /*Restore client folder in target machines*/
     for(worker mworker : workers){
         string cmdSsh = "ssh " + mworker.machine + " ";
         string cmdRestoreClient = "'mv /var/radmind/client_original /var/radmind/client'";
